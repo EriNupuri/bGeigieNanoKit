@@ -1,0 +1,35 @@
+Question: 
+I’m reaching out with some questions about how bGeigie Nano LOG data correlates with how the data is fed through the “Viewer” as displayed in Safecast’s API, and then how this is filtered in the KML file output.  When we contacted Safecast in 2020, Mat Shaffer informed us that the Viewer (what we see on the API tilemap) incorporates a different version of the data than the output generated through the KML files.
+
+
+Can you give us a precise explanation of which values (CPMs, CP 5s logs, CPM logs) are included in
+Viewer
+KML output
+
+Next, we are trying to calculate the exact rate of the uSv/h based on the CPM.  To calculate this:
+ uSv/h and CPM: 0.0057 * CPM = uSv/h  AND 1CPM = 12*CP5  (Please verify that this is the correct calculation built in to the Safecast system, thank you!)
+
+Previously, I wrote  Safecast Device Discussions and Support, and asked why “high radiation values would disappear from the KML files after the .LOG files had been uploaded to the API.   When we attempt to upload .log files, the uSv/h and CPM values that we saw on the OLED display, are displayed as matching the OLED when we upload them to the API.  *However* when the log files are uploaded to the API and then downloaded as KML files, we seem to lose the the uSv/h and CPM values in the higher ranges.  Our question for you is - Is this a programming error or glitch in the upload mechanism, or, other?  Why would we continue to have this error, unless the original OLED is inaccurate in the first place (taking into account instrumental fluctuations….)
+
+***March 29, 2020: Mat Shafer replied that: 
+
+Mat Shaffer: Pretty sure what's happening here is that the viewer has special code that will swap in the cpm5s at cpm values over 100: https://github.com/Safecast/Tilemap/blob/master/bgeigie_viewer_worker.js#L338-L343
+
+But the kml export doesn't have any special handling https://github.com/Safecast/safecastapi/blob/master/app/views/bgeigie_imports/bgeigie_logs.kml.erb#L166-L167
+
+We could potentially have the `usv` function implement similar logic https://github.com/Safecast/safecastapi/blob/master/app/models/bgeigie_log.rb#L22, maybe +Nick Dolezal would be good to comment on if that's a good idea or not since he implemented the viewer logic.”
+
+Also - 
+From: Mat Schaffer <mat@schaffer.me>
+Date: Tue, Mar 31, 2020 at 5:11 PM
+Subject: Re: High radiation values disappearing from kml file
+
+I think at this stage it's more a question for Nick and/or the other maintainers on if we have the ability to do the same swap to cp5s.
+
+For now just understand that the KML contains _only_ the CPM and the µSv is calculated from that.
+
+The viewer on api.safecast.org is a little fancier and will use the cp5s to calculate the µSv under certain conditions. This often makes the map show a somewhat higher calculated dose rate.
+
+If you needed something very short term, we could add the cp5s to the kml alongside the CPM I think but from looking at the format I doubt it'd be very useful.
+
+-Mat
